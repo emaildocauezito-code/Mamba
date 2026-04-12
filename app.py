@@ -383,7 +383,7 @@ def create_competicao():
 def update_competicao(comp_id):
     req = request.json
     conn = get_db()
-        conn.execute('UPDATE competicoes SET nome = %s, status = %s WHERE id = %s',
+    conn.execute('UPDATE competicoes SET nome = %s, status = %s WHERE id = %s',
               (req.get('nome'), req.get('status'), comp_id))
               
     ranking = req.get('ranking', [])
