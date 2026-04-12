@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h3 style="color: #E53935; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: -10px;">COMPETIÇÃO</h3>
+    <h2 style="font-size: 3.5rem; text-transform: uppercase;">PLACAR</h2>
+</div>
+
+<div class="scoreboard-container" style="max-width: 900px;">
+    <!-- PLACAR DE COMPETIÇÕES -->
+    {% for comp in competicoes %}
+    <div class="competition-card">
+        <div class="competition-header">
+            <h3>{{ comp.nome }}</h3>
+            <div class="competition-status">
+                <span>✔ {{ comp.status }}</span>
+            </div>
+        </div>
+        <ul class="ranking-list">
+            {% for item in comp.ranking %}
+            <li class="ranking-item {% if item.destaque %}destaque{% endif %}">
+                <span class="ranking-icon">{{ item.icone }}</span>
+                <span class="ranking-pos">{{ item.posicao }}</span>
+                <span class="ranking-team team-{{ item.equipe|lower }}">{{ item.equipe }}</span>
+                {% if item.destaque %} <span style="color: #4caf50; margin-left: 10px; font-weight: bold;">🐍</span> {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+
+    <!-- DIVISOR -->
+    <div class="page-header" style="margin-top: 4rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 2rem;">PLACAR DE JOGOS</h2>
+    </div>
+
+    {% for jogo in jogos %}
+    <div class="match-card">
+        {% if jogo.especificacao %}
+        <div class="match-spec">{{ jogo.especificacao }}</div>
+        {% endif %}
+        <div class="match-date">{{ jogo.data }}</div>
+        <div class="match-teams">
+            <div class="team {% if jogo.time_a == 'Mamba' %}team-mamba{% endif %}">
+                <span class="team-name">{{ jogo.time_a }}</span>
+                <span class="team-score">{{ jogo.pontos_a if jogo.status == 'Finalizado' else '-' }}</span>
+            </div>
+            <div class="match-vs">x</div>
+            <div class="team {% if jogo.time_b == 'Mamba' %}team-mamba{% endif %}">
+                <span class="team-score">{{ jogo.pontos_b if jogo.status == 'Finalizado' else '-' }}</span>
+                <span class="team-name">{{ jogo.time_b }}</span>
+            </div>
+        </div>
+        <div class="match-status status-{{ jogo.status | lower }}">{{ jogo.status }}</div>
+    </div>
+    {% else %}
+    <p class="empty-state">Nenhum jogo cadastrado no momento.</p>
+    {% endfor %}
+</div>
+{% endblock %}

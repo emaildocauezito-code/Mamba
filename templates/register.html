@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #f4f6f8;
+            background-image: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #111;
+        }
+    </style>
+</head>
+<body class="auth-body">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="logo-circle">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e53935'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E" alt="Mamba" style="width: 30px; height: 30px;">
+            </div>
+        </div>
+        
+        <h2>Create an Account</h2>
+        <p class="auth-subtitle">Join the Mamba Arena</p>
+        
+        {% if error %}
+        <div class="auth-error">{{ error }}</div>
+        {% endif %}
+        
+        <form action="/register" method="POST">
+            <div class="input-group">
+                <label>Name</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" name="nome" placeholder="Your name" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Email</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">✉</span>
+                    <input type="email" name="email" placeholder="you@example.com" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-signin">Sign up</button>
+        </form>
+        
+        <div class="auth-footer" style="justify-content: center; margin-top: 1.5rem;">
+            <span class="signup-text">Already have an account? <a href="/login">Sign in</a></span>
+        </div>
+    </div>
+</body>
+</html>

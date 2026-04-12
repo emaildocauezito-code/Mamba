@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="hero-content">
+        <h2>ÁFRICA DO SUL • GINCANA 2026</h2>
+        <h1 class="hero-title">MAMBA</h1>
+        <p class="hero-subtitle">A equipe Mamba chegou pra fazer história na GICMA 2026! Representando com orgulho a
+            África do Sul, a gente carrega na nossa essência a força, a resistência e a união de um povo que nunca
+            desiste. Nossa cor é o vermelho — cor de energia, paixão e garra — e é exatamente isso que a gente traz em
+            cada prova, em cada grito e em cada momento dessa gincana.</p>
+        <p class="hero-subtitle">Ser Mamba é viver intensamente, apoiar o colega e comemorar cada conquista como se
+            fosse gigante. Aqui ninguém fica pra trás — a gente cresce, vibra e luta junto.</p>
+        <p class="hero-subtitle">Então é isso: bora fazer barulho, mostrar nossa força e deixar nossa marca! Porque
+            quando a Mamba entra em jogo… já sabe, né? É emoção até o fim! 🔴🔥</p>
+    </div>
+    <div class="mascot-container">
+        <!-- Will place AI generated mascot here -->
+        <img src="{{ url_for('static', filename='img/mamba_logo.jpg') }}" alt="Mascote Mamba"
+            class="mascot-img banner-mascot"
+            onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect width=%22300%22 height=%22300%22 fill=%22%232a2a2a%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23777%22 font-family=%22Arial%22 font-size=%2220%22 dy=%22.3em%22 text-anchor=%22middle%22%3ESalve a foto como mamba_logo.jpg em static/img%3C/text%3E%3C/svg%3E'">
+    </div>
+</section>
+
+<section class="info-section">
+    <div class="info-card" style="flex-basis: 100%;">
+        <h3>Líderes Gerais</h3>
+
+        <div class="tier-section">
+            <h4 class="tier-title">Ensino Médio • 3º Ano</h4>
+            <div class="people-grid">
+                {% set nomes_3 = ['Sofia Marrara', 'Degani', 'Maju'] %}
+                {% for nome in nomes_3 %}
+                <div class="person">
+                    <div class="avatar-placeholder avatar-xl">Foto</div>
+                    <p style="font-weight: bold; color: var(--text-light);">{{ nome }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tier-section">
+            <h4 class="tier-title" style="color: #ccc;">Ensino Médio • 2º Ano</h4>
+            <div class="people-grid">
+                {% set nomes_2 = ['Isaque Lisboa', 'Mariah Cavalcante'] %}
+                {% for nome in nomes_2 %}
+                <div class="person">
+                    <div class="avatar-placeholder avatar-lg">Foto</div>
+                    <p>{{ nome }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tier-section">
+            <h4 class="tier-title" style="color: #ccc;">Ensino Médio • 1º Ano</h4>
+            <div class="people-grid">
+                {% set nomes_1 = ['Maria Laura', 'Mafe'] %}
+                {% for nome in nomes_1 %}
+                <div class="person">
+                    <div class="avatar-placeholder avatar-lg">Foto</div>
+                    <p>{{ nome }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tier-section" style="margin-top: 3rem;">
+            <h4 class="tier-title" style="color: #888; font-size: 1rem;">Ensino Fundamental • 9º Ano</h4>
+            <div class="people-grid">
+                {% set nomes_9 = ['Helena Ilha', 'Marina', 'Maria Clara', 'Bruna Matosinhos'] %}
+                {% for nome in nomes_9 %}
+                <div class="person">
+                    <div class="avatar-placeholder avatar-md">Foto</div>
+                    <p style="color: #aaa;">{{ nome }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tier-section">
+            <h4 class="tier-title" style="color: #888; font-size: 1rem;">Ensino Fundamental • 8º Ano</h4>
+            <div class="people-grid">
+                {% set nomes_8 = ['Fernanda Alexim', 'Giovana Mondini', 'Cadu', 'Sérgio Assis'] %}
+                {% for nome in nomes_8 %}
+                <div class="person">
+                    <div class="avatar-placeholder avatar-md">Foto</div>
+                    <p style="color: #aaa;">{{ nome }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card" style="flex-basis: 100%;">
+        <h3>Nossos Padrinhos</h3>
+        <div class="people-grid">
+            {% set padrinhos = ['Thiagão', 'Arcanjo', 'Jorge', 'Northon', 'Rafael', 'Tainá', 'Leandro'] %}
+            {% for nome in padrinhos %}
+            <div class="person">
+                <div class="avatar-placeholder avatar-lg">Foto</div>
+                <p>{{ nome }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="info-card" style="flex-basis: 100%;">
+        <h3>Ex Aluno</h3>
+        <div class="people-grid">
+            <div class="person">
+                <div class="avatar-placeholder avatar-xl">Foto</div>
+                <p style="font-weight: bold; color: var(--primary);">Cauê Mathias</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

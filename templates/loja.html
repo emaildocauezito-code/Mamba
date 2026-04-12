@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h2>LOJA MAMBA</h2>
+    <p>Adquira os produtos oficiais da equipe e ajude a fortalecer nossa torcida!</p>
+</div>
+
+<div class="store-grid">
+    {% for produto in produtos %}
+    <div class="product-card">
+        <!-- Placeholder for product image -->
+        <div class="product-image-wrapper">
+            <img src="{{ url_for('static', filename='img/' + produto.imagem) }}" alt="{{ produto.nome }}" class="product-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect width=%22300%22 height=%22300%22 fill=%22%231a1a1a%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23555%22 font-family=%22Arial%22 font-size=%2216%22 dy=%22.3em%22 text-anchor=%22middle%22%3E{{ produto.nome | urlencode }}%3C/text%3E%3C/svg%3E'">
+        </div>
+        <div class="product-info">
+            <h3 class="product-title">{{ produto.nome }}</h3>
+            <p class="product-desc">{{ produto.descricao }}</p>
+            <div class="product-bottom">
+                <span class="product-price">R$ {{ "%.2f" | format(produto.preco) }}</span>
+                <a href="/checkout/{{ produto.id }}" class="btn-buy">COMPRAR</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p class="empty-state">Nenhum produto disponível no momento.</p>
+    {% endfor %}
+</div>
+{% endblock %}

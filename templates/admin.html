@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <div>
+            <h2 style="color: #E53935;">Centro de Comando ADM</h2>
+            <p>Gerencie pedidos da loja e acesse logs do sistema.</p>
+        </div>
+        <div style="background: #111; padding: 0.5rem 1rem; border-radius: 8px;">
+            Último login: {{ acessos[0].data_hora if acessos else "N/A" }}
+        </div>
+    </div>
+
+    <div class="admin-stats">
+        <div class="stat-card">
+            <h3>Total de Pedidos</h3>
+            <p>{{ pedidos|length }}</p>
+        </div>
+        <div class="stat-card" style="border-left-color: #4caf50;">
+            <h3>Entregues</h3>
+            <p>{{ pedidos|selectattr('status', 'equalto', 'Entregue')|list|length }}</p>
+        </div>
+        <div class="stat-card" style="border-left-color: #ffd700; flex: 1.5;">
+            <h3>Lucro Bruto (Entregues)</h3>
+            <p style="color: #ffd700;">R$ {{ "%.2f" | format(lucro_bruto) }}</p>
+        </div>
+        <div class="stat-card" style="border-left-color: #4caf50; flex: 1.5;">
+            <h3>Lucro Líquido (Entregues)</h3>
+            <p style="color: #4caf50;">R$ {{ "%.2f" | format(lucro_liquido) }}</p>
+        </div>
+        <div class="stat-card" style="border-left-color: #ff9800;">
+            <h3>Pendentes</h3>
+            <p>{{ pedidos|selectattr('status', 'equalto', 'Pendente')|list|length }}</p>
+        </div>
+        <div class="stat-card" style="border-left-color: #2196f3;">
+            <h3>Acessos Totais</h3>
+            <p>{{ acessos|length }}</p>
+        </div>
+    </div>
+
+    <div class="admin-tables-layout">
+        <!-- PEDIDOS -->
+        <div class="admin-panel" style="flex: 2;">
+            <h3>📦 Gestão de Pedidos (Loja)</h3>
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Cliente</th>
+                            <th>Contato</th>
+                            <th>Produto</th>
+                            <th>Descrição</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td style="font-size: 0.8rem; color: #888;">{{ pedido.data_hora }}</td>
+                            <td>
+                                <strong>{{ pedido.nome_cliente }}</strong><br>
+                                <span style="font-size: 0.8rem; color: #888;">{{ pedido.email_cliente }}</span>
+                            </td>
+                            <td>{{ pedido.telefone }}</td>
+                            <td>{{ pedido.produto_nome }}<br><b style="color: #E53935;">R$ {{ "%.2f" |
+                                    format(pedido.total) }}</b></td>
+                            <td style="max-width: 150px; font-size: 0.85rem;">{{ pedido.descricao }}</td>
+                            <td>
+                                <span class="badge badge-{{ pedido.status|lower }}" id="status-{{ pedido.id }}">
+                                    {{ pedido.status }}
+                                </span>
+                            </td>
+                            <td style="display: flex; gap: 5px; align-items: center; border: none;">
+                                {% if pedido.status == 'Pendente' %}
+                                <button class="btn-small" onclick="marcarEntregue('{{ pedido.id }}')"
+                                    id="btn-{{ pedido.id }}">✔</button>
+                                {% else %}
+                                <span style="color: #4caf50; font-size: 1.2rem;">✔</span>
+                                {% endif %}
+                                <button class="btn-small" style="background: #E53935;" onclick="deletePedido('{{ pedido.id }}')" title="Apagar Pedido">🗑</button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #666; padding: 2rem;">Nenhum pedido
+                                encontrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ACESSOS -->
+        <div class="admin-panel" style="flex: 1;">
+            <h3>👁 Histórico de Acessos</h3>
+            <div style="overflow-x: auto; max-height: 500px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Data / Hora</th>
+                            <th>Usuário (E-mail)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for acesso in acessos[:50] %}
+                        <tr>
+                            <td style="font-size: 0.85rem;">{{ acesso.data_hora }}</td>
+                            <td style="font-size: 0.9rem;">{{ acesso.email }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2" style="text-align: center; color: #666;">Nenhum registro.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 1rem; text-align: center;">Mostrando últimos 50
+                acessos</p>
+        </div>
+    </div>
+
+    <div class="admin-tables-layout" style="margin-top: 2rem;">
+        <!-- PRODUTOS -->
+        <div class="admin-panel" style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin: 0;">🛒 Gerenciar Produtos</h3>
+                <button class="btn-small" style="background: #4caf50;" onclick="createProduto()">➕ Novo Produto</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Produto (Nome e Arquivo)</th>
+                            <th>Preço Venda</th>
+                            <th>Custo (Unid.)</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in produtos %}
+                        <tr>
+                            <td>
+                                <input type="text" id="nome-{{ p.id }}" value="{{ p.nome }}" placeholder="Nome do Produto" style="width: 100%; margin-bottom: 5px; padding: 5px; background: #222; border: 1px solid #444; color: #fff; font-size: 0.9rem;">
+                                <input type="text" id="img-{{ p.id }}" value="{{ p.imagem }}" placeholder="Ex: camiseta.png" style="width: 100%; padding: 5px; background: #222; border: 1px solid #444; color: #aaa; font-size: 0.8rem;">
+                            </td>
+                            <td><input type="number" id="preco-{{ p.id }}" value="{{ p.preco }}" step="0.01"
+                                    style="width: 80px; padding: 5px; background: #222; border: 1px solid #444; color: #fff;">
+                            </td>
+                            <td><input type="number" id="custo-{{ p.id }}" value="{{ p.custo }}" step="0.01"
+                                    style="width: 80px; padding: 5px; background: #222; border: 1px solid #444; color: #fff;">
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 5px; flex-direction: column;">
+                                    <button class="btn-small" onclick="updateProduto('{{ p.id }}')">Salvar</button>
+                                    <button class="btn-small" style="background: #E53935;" onclick="deleteProduto('{{ p.id }}')">🗑</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- JOGOS -->
+        <div class="admin-panel" style="flex: 1.5;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin: 0;">🏀 Gerenciar Placar de Jogos</h3>
+                <button class="btn-small" style="background: #4caf50;" onclick="createJogo()">➕ Novo Jogo</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Confronto</th>
+                            <th>Pontos A</th>
+                            <th>Pontos B</th>
+                            <th>Status / Detalhes</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for j in jogos %}
+                        <tr>
+                            <td><strong>{{ j.time_a }}</strong> x <strong>{{ j.time_b }}</strong></td>
+                            <td><input type="number" id="pontos_a-{{ j.id }}" value="{{ j.pontos_a }}"
+                                    style="width: 50px; padding: 5px; background: #222; border: 1px solid #444; color: #fff;">
+                            </td>
+                            <td><input type="number" id="pontos_b-{{ j.id }}" value="{{ j.pontos_b }}"
+                                    style="width: 50px; padding: 5px; background: #222; border: 1px solid #444; color: #fff;">
+                            </td>
+                            <td>
+                                <select id="status-jogo-{{ j.id }}"
+                                    style="margin-bottom: 5px; padding: 5px; background: #222; border: 1px solid #444; color: #fff; width: 100%;">
+                                    <option value="Agendado" {% if j.status=='Agendado' %}selected{% endif %}>Agendado
+                                    </option>
+                                    <option value="Finalizado" {% if j.status=='Finalizado' %}selected{% endif %}>
+                                        Finalizado</option>
+                                </select><br>
+                                <input type="text" id="especificacao-{{ j.id }}" value="{{ j.especificacao }}"
+                                    placeholder="Ex: Basq. Masculino"
+                                    style="width: 100%; padding: 5px; background: #222; border: 1px solid #444; color: #fff; font-size: 0.8rem; box-sizing: border-box;">
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="btn-small" onclick="updateJogo('{{ j.id }}')">Salvar</button>
+                                    <button class="btn-small" style="background: #E53935;"
+                                        onclick="deleteJogo('{{ j.id }}')">🗑</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPETIÇÕES -->
+    <div class="admin-tables-layout" style="margin-top: 2rem;">
+        <div class="admin-panel" style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin: 0;">🏆 Gerenciar Placar de Competições</h3>
+                <button class="btn-small" style="background: #4caf50;" onclick="createCompeticao()">➕ Nova
+                    Competição</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome da Competição</th>
+                            <th>Status</th>
+                            <th>Pódio (1º, 2º, 3º)</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in competicoes %}
+                        <tr>
+                            <td><input type="text" id="nome-comp-{{ c.id }}" value="{{ c.nome }}"
+                                    style="width: 100%; padding: 5px; background: #222; border: 1px solid #444; color: #fff;">
+                            </td>
+                            <td>
+                                <select id="status-comp-{{ c.id }}"
+                                    style="padding: 5px; background: #222; border: 1px solid #444; color: #fff;">
+                                    <option value="AGENDADO" {% if c.status=='AGENDADO' %}selected{% endif %}>Agendado
+                                    </option>
+                                    <option value="EM ANDAMENTO" {% if c.status=='EM ANDAMENTO' %}selected{% endif %}>Em
+                                        Andamento</option>
+                                    <option value="FINALIZADO" {% if c.status=='FINALIZADO' %}selected{% endif %}>
+                                        Finalizado</option>
+                                </select>
+                            </td>
+                            <td>
+                                {% set t_options = ['Mamba', 'Palawa', 'Salvatore', 'Cayena', 'Katana'] %}
+                                {% for pos in range(3) %}
+                                {% set ranking_item = c.ranking[pos] if c.ranking|length > pos else {'equipe': ''} %}
+                                <select id="comp-{{ c.id }}-pos-{{ pos }}"
+                                    style="margin-bottom: 2px; padding: 2px; background: #222; border: 1px solid #444; color: #fff; font-size: 0.8rem;">
+                                    <option value="">- {{ pos + 1 }}º Lugar -</option>
+                                    {% for t in t_options %}
+                                    <option value="{{ t }}" {% if ranking_item.equipe==t %}selected{% endif %}>{{ t }}
+                                    </option>
+                                    {% endfor %}
+                                </select><br>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="btn-small" onclick="updateCompeticao('{{ c.id }}')">Salvar</button>
+                                    <button class="btn-small" style="background: #E53935;"
+                                        onclick="deleteCompeticao('{{ c.id }}')">🗑</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- DASHBOARD CHARTS -->
+    <div class="admin-tables-layout" style="margin-top: 2rem;">
+        <!-- GRÁFICO 1 -->
+        <div class="admin-panel" style="flex: 1.5; background: #1a1a1a;">
+            <h3>📈 Lucro Diário (Receita)</h3>
+            <canvas id="lucroChart" height="120"></canvas>
+        </div>
+        <!-- GRÁFICO 2 -->
+        <div class="admin-panel" style="flex: 1; background: #1a1a1a;">
+            <h3>📊 Vendas por Produto</h3>
+            <canvas id="pizzaChart" height="150"></canvas>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // --- GRÁFICOS ---
+    const ctxLucro = document.getElementById('lucroChart').getContext('2d');
+    
+    // Parse the data safely from Jinja so the IDE doesn't show errors
+    const lucroLabels = JSON.parse('{{ chart_lucro_labels | tojson | safe }}');
+    const lucroDados = JSON.parse('{{ chart_lucro_dados | tojson | safe }}');
+    const pizzaLabels = JSON.parse('{{ chart_pizza_labels | tojson | safe }}');
+    const pizzaDados = JSON.parse('{{ chart_pizza_dados | tojson | safe }}');
+
+    new Chart(ctxLucro, {
+        type: 'line',
+        data: {
+            labels: lucroLabels,
+            datasets: [{
+                label: 'Lucro Líquido (R$)',
+                data: lucroDados,
+                borderColor: '#4caf50',
+                backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#aaa' } },
+                x: { grid: { color: '#333' }, ticks: { color: '#aaa' } }
+            },
+            plugins: {
+                legend: { labels: { color: '#fff' } }
+            }
+        }
+    });
+
+    const ctxPizza = document.getElementById('pizzaChart').getContext('2d');
+    new Chart(ctxPizza, {
+        type: 'doughnut',
+        data: {
+            labels: pizzaLabels,
+            datasets: [{
+                data: pizzaDados,
+                backgroundColor: ['#E53935', '#2196f3', '#4caf50', '#ffeb3b', '#9c27b0', '#ff9800', '#00bcd4'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { position: 'right', labels: { color: '#fff' } }
+            }
+        }
+    });
+
+    function marcarEntregue(pedidoId) {
+        if (!confirm("Tem certeza que deseja marcar este pedido como entregue?")) return;
+
+        fetch('/api/admin/pedidos/' + pedidoId + '/status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'Entregue' })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const badge = document.getElementById('status-' + pedidoId);
+                    badge.className = 'badge badge-entregue';
+                    badge.innerText = 'Entregue';
+
+                    const btn = document.getElementById('btn-' + pedidoId);
+                    btn.outerHTML = '<span style="color: #4caf50; font-size: 1.2rem;">✔</span>';
+                } else {
+                    alert("Erro ao atualizar.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Erro de conexão.");
+            });
+    }
+
+    function updateProduto(id) {
+        const nome = document.getElementById('nome-' + id).value;
+        const imagem = document.getElementById('img-' + id).value;
+        const preco = document.getElementById('preco-' + id).value;
+        const custo = document.getElementById('custo-' + id).value;
+
+        fetch('/api/admin/produtos/' + id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: nome, imagem: imagem, preco: preco, custo: custo })
+        }).then(res => res.json()).then(data => {
+            if (data.success) { alert('Produto atualizado com sucesso!'); location.reload(); }
+            else alert('Erro ao atualizar produto.');
+        }).catch(err => alert("Erro de conexão."));
+    }
+
+    function createProduto() {
+        if(!confirm("Criar um novo produto em branco?")) return;
+        fetch('/api/admin/produtos', { method: 'PUT' })
+            .then(res => res.json()).then(data => { if(data.success) location.reload(); });
+    }
+
+    function deleteProduto(id) {
+        if(!confirm("Tem certeza que deseja excluir definitivamente este produto? Ele sumirá da loja!")) return;
+        fetch('/api/admin/produtos/' + id, { method: 'DELETE' })
+            .then(res => res.json()).then(data => { if(data.success) location.reload(); });
+    }
+
+    function updateJogo(id) {
+        const pontos_a = document.getElementById('pontos_a-' + id).value;
+        const pontos_b = document.getElementById('pontos_b-' + id).value;
+        const status = document.getElementById('status-jogo-' + id).value;
+        const especificacao = document.getElementById('especificacao-' + id).value;
+        fetch('/api/admin/jogos/' + id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pontos_a: pontos_a, pontos_b: pontos_b, status: status, especificacao: especificacao })
+        }).then(res => res.json()).then(data => {
+            if (data.success) { alert('Jogo atualizado com sucesso!'); location.reload(); }
+            else alert('Erro ao atualizar jogo.');
+        }).catch(err => alert("Erro de conexão."));
+    }
+
+    function createJogo() {
+        fetch('/api/admin/jogos', { method: 'PUT' })
+            .then(res => res.json()).then(data => { if (data.success) location.reload(); });
+    }
+
+    function deleteJogo(id) {
+        if (!confirm("Excluir definitivamente este jogo?")) return;
+        fetch('/api/admin/jogos/' + id, { method: 'DELETE' })
+            .then(res => res.json()).then(data => { if (data.success) location.reload(); });
+    }
+
+    function createCompeticao() {
+        fetch('/api/admin/competicoes', { method: 'PUT' })
+            .then(res => res.json()).then(data => { if (data.success) location.reload(); });
+    }
+
+    function deleteCompeticao(id) {
+        if (!confirm("Excluir definitivamente esta competição?")) return;
+        fetch('/api/admin/competicoes/' + id, { method: 'DELETE' })
+            .then(res => res.json()).then(data => { if (data.success) location.reload(); });
+    }
+
+    function updateCompeticao(id) {
+        const nome = document.getElementById('nome-comp-' + id).value;
+        const status = document.getElementById('status-comp-' + id).value;
+
+        const rank0 = document.getElementById('comp-' + id + '-pos-0').value;
+        const rank1 = document.getElementById('comp-' + id + '-pos-1').value;
+        const rank2 = document.getElementById('comp-' + id + '-pos-2').value;
+
+        const ranking = [];
+        if (rank0) ranking.push({ posicao: "1º", equipe: rank0, icone: "🏆", destaque: rank0 === 'Mamba' });
+        if (rank1) ranking.push({ posicao: "2º", equipe: rank1, icone: "🥈", destaque: rank1 === 'Mamba' });
+        if (rank2) ranking.push({ posicao: "3º", equipe: rank2, icone: "🥉", destaque: rank2 === 'Mamba' });
+
+        fetch('/api/admin/competicoes/' + id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: nome, status: status, ranking: ranking })
+        }).then(res => res.json()).then(data => {
+            if (data.success) { alert('Competição atualizada!'); location.reload(); }
+            else alert('Erro ao atualizar.');
+        });
+    }
+</script>
+{% endblock %}

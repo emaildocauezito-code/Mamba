@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='img/mamba_logo.jpg') }}" alt="Mamba Logo" class="nav-logo-img">
+            <h1 class="logo-text">MAMBA</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/" class="{{ 'active' if request.path == '/' else '' }}">INÍCIO</a></li>
+            <li><a href="/placar" class="{{ 'active' if request.path == '/placar' else '' }}">PLACAR</a></li>
+            <li><a href="/loja" class="{{ 'active' if request.path == '/loja' else '' }}">LOJA</a></li>
+            {% if current_user %}
+                {% if user_role == 'admin' %}
+                <li><a href="/admin" class="nav-admin {{ 'active' if request.path == '/admin' else '' }}">ADMIN</a></li>
+                {% endif %}
+                <li class="nav-user-greeting"><span>Olá, {{ user_name }}</span></li>
+                <li><a href="/logout" class="nav-logout">SAIR</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <main class="content-wrapper">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>Gincana Escolar 2026 - Equipe Mamba (África do Sul)</p>
+    </footer>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
