@@ -15,8 +15,7 @@ mp_sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
 def log_acesso(email):
     conn = get_db()
-    c = conn.cursor()
-    c.execute('INSERT INTO acessos (id, email, data_hora) VALUES (%s, %s, %s)',
+    conn.execute('INSERT INTO acessos (id, email, data_hora) VALUES (%s, %s, %s)',
               (str(uuid.uuid4()), email, datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
     conn.commit()
     conn.close()
@@ -79,16 +78,15 @@ def register():
         senha = request.form.get('password')
         
         conn = get_db()
-        c = conn.cursor()
         
-        user_exists = c.execute('SELECT id FROM usuarios WHERE email = %s', (email,)).fetchone()
+        user_exists = conn.execute('SELECT id FROM usuarios WHERE email = %s', (email,)).fetchone()
         if user_exists:
             conn.close()
             return render_template('register.html', error="Email já cadastrado", title="Registro | Mamba Arena")
             
         novo_id = str(uuid.uuid4())
         role = "user"
-        c.execute('INSERT INTO usuarios (id, nome, email, senha, role) VALUES (%s, %s, %s, %s, %s)',
+        conn.execute('INSERT INTO usuarios (id, nome, email, senha, role) VALUES (%s, %s, %s, %s, %s)',
                   (novo_id, nome, email, senha, role))
         conn.commit()
         conn.close()
@@ -372,10 +370,9 @@ def delete_jogo(jogo_id):
 def create_competicao():
     comp_id = str(uuid.uuid4())
     conn = get_db()
-    c = conn.cursor()
-    c.execute('INSERT INTO competicoes (id, nome, status) VALUES (%s, %s, %s)', (comp_id, "Nova Competição", "AGENDADO"))
+    conn.execute('INSERT INTO competicoes (id, nome, status) VALUES (%s, %s, %s)', (comp_id, "Nova Competição", "AGENDADO"))
     for pos, rank, equipe in [("1º", "🏆", "Mamba"), ("2º", "🥈", "Palawa"), ("3º", "🥉", "Salvatore")]:
-        c.execute('INSERT INTO ranking (competicao_id, posicao, equipe, icone, destaque) VALUES (%s, %s, %s, %s, %s)',
+        conn.execute('INSERT INTO ranking (competicao_id, posicao, equipe, icone, destaque) VALUES (%s, %s, %s, %s, %s)',
                   (comp_id, pos, equipe, rank, equipe == "Mamba"))
     conn.commit()
     conn.close()
@@ -386,14 +383,13 @@ def create_competicao():
 def update_competicao(comp_id):
     req = request.json
     conn = get_db()
-    c = conn.cursor()
-    c.execute('UPDATE competicoes SET nome = %s, status = %s WHERE id = %s',
+        conn.execute('UPDATE competicoes SET nome = %s, status = %s WHERE id = %s',
               (req.get('nome'), req.get('status'), comp_id))
               
     ranking = req.get('ranking', [])
-    c.execute('DELETE FROM ranking WHERE competicao_id = %s', (comp_id,))
+    conn.execute('DELETE FROM ranking WHERE competicao_id = %s', (comp_id,))
     for r in ranking:
-        c.execute('INSERT INTO ranking (competicao_id, posicao, equipe, icone, destaque) VALUES (%s, %s, %s, %s, %s)',
+        conn.execute('INSERT INTO ranking (competicao_id, posicao, equipe, icone, destaque) VALUES (%s, %s, %s, %s, %s)',
                   (comp_id, r.get('posicao'), r.get('equipe'), r.get('icone'), r.get('destaque')))
     conn.commit()
     conn.close()
