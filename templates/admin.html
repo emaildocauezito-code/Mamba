@@ -185,9 +185,26 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% set t_options = ['Mamba', 'Palawa', 'Salvatore', 'Cayena', 'Katana'] %}
                         {% for j in jogos %}
                         <tr>
-                            <td><strong>{{ j.time_a }}</strong> x <strong>{{ j.time_b }}</strong></td>
+                            <td>
+                                <select id="time_a-{{ j.id }}" style="margin-bottom: 5px; padding: 5px; background: #222; border: 1px solid #444; color: #fff; width: 100%;">
+                                    <option value="">- Time A -</option>
+                                    {% for t in t_options %}
+                                    <option value="{{ t }}" {% if j.time_a == t %}selected{% endif %}>{{ t }}</option>
+                                    {% endfor %}
+                                    <option value="Outro" {% if j.time_a == 'Outro' %}selected{% endif %}>Outro</option>
+                                </select>
+                                <div style="text-align: center; font-weight: bold; font-size: 0.8rem; margin: 2px 0;">x</div>
+                                <select id="time_b-{{ j.id }}" style="margin-top: 5px; padding: 5px; background: #222; border: 1px solid #444; color: #fff; width: 100%;">
+                                    <option value="">- Time B -</option>
+                                    {% for t in t_options %}
+                                    <option value="{{ t }}" {% if j.time_b == t %}selected{% endif %}>{{ t }}</option>
+                                    {% endfor %}
+                                    <option value="Outro" {% if j.time_b == 'Outro' %}selected{% endif %}>Outro</option>
+                                </select>
+                            </td>
                             <td><input type="number" id="pontos_a-{{ j.id }}" value="{{ j.pontos_a }}"
                                     style="width: 50px; padding: 5px; background: #222; border: 1px solid #444; color: #fff;">
                             </td>
@@ -413,7 +430,15 @@
             .then(res => res.json()).then(data => { if(data.success) location.reload(); });
     }
 
+    function deletePedido(id) {
+        if(!confirm("Tem certeza que deseja excluir este pedido permanentemente?")) return;
+        fetch('/api/admin/pedidos/' + id, { method: 'DELETE' })
+            .then(res => res.json()).then(data => { if(data.success) location.reload(); });
+    }
+
     function updateJogo(id) {
+        const time_a = document.getElementById('time_a-' + id).value;
+        const time_b = document.getElementById('time_b-' + id).value;
         const pontos_a = document.getElementById('pontos_a-' + id).value;
         const pontos_b = document.getElementById('pontos_b-' + id).value;
         const status = document.getElementById('status-jogo-' + id).value;
@@ -421,7 +446,7 @@
         fetch('/api/admin/jogos/' + id, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pontos_a: pontos_a, pontos_b: pontos_b, status: status, especificacao: especificacao })
+            body: JSON.stringify({ time_a: time_a, time_b: time_b, pontos_a: pontos_a, pontos_b: pontos_b, status: status, especificacao: especificacao })
         }).then(res => res.json()).then(data => {
             if (data.success) { alert('Jogo atualizado com sucesso!'); location.reload(); }
             else alert('Erro ao atualizar jogo.');
