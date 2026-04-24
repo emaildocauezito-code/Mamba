@@ -4,10 +4,20 @@ import mercadopago
 from datetime import datetime
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, abort, session, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 from database import get_db
 
 app = Flask(__name__)
 app.secret_key = 'mamba_super_secret_session_key'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    return response
 
 # MP Access Token (Coloque seu Access Token de Produção ou Teste aqui)
 MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN", "TEST-00000000000-000000-000000000000-000000000")
@@ -48,10 +58,22 @@ def login():
         senha = request.form.get('password')
         
         conn = get_db()
-        user = conn.execute('SELECT * FROM usuarios WHERE email = %s AND senha = %s', (email, senha)).fetchone()
+        user = conn.execute('SELECT * FROM usuarios WHERE email = %s', (email,)).fetchone()
+        
+        valid = False
+        if user:
+            if user['senha'].startswith('scrypt:') or user['senha'].startswith('pbkdf2:'):
+                if check_password_hash(user['senha'], senha):
+                    valid = True
+            elif user['senha'] == senha:
+                valid = True
+                new_hash = generate_password_hash(senha)
+                conn.execute('UPDATE usuarios SET senha = %s WHERE id = %s', (new_hash, user['id']))
+                conn.commit()
+                
         conn.close()
         
-        if user:
+        if valid:
             session['user_id'] = user['id']
             session['user_name'] = user['nome']
             session['user_email'] = user['email']
@@ -86,8 +108,9 @@ def register():
             
         novo_id = str(uuid.uuid4())
         role = "user"
+        senha_hash = generate_password_hash(senha)
         conn.execute('INSERT INTO usuarios (id, nome, email, senha, role) VALUES (%s, %s, %s, %s, %s)',
-                  (novo_id, nome, email, senha, role))
+                  (novo_id, nome, email, senha_hash, role))
         conn.commit()
         conn.close()
         
@@ -350,8 +373,8 @@ def create_jogo():
 def update_jogo(jogo_id):
     req = request.json
     conn = get_db()
-    conn.execute('UPDATE jogos SET pontos_a = %s, pontos_b = %s, status = %s, especificacao = %s WHERE id = %s',
-                 (req.get('pontos_a'), req.get('pontos_b'), req.get('status'), req.get('especificacao'), jogo_id))
+    conn.execute('UPDATE jogos SET time_a = %s, time_b = %s, pontos_a = %s, pontos_b = %s, status = %s, especificacao = %s WHERE id = %s',
+                 (req.get('time_a'), req.get('time_b'), req.get('pontos_a'), req.get('pontos_b'), req.get('status'), req.get('especificacao'), jogo_id))
     conn.commit()
     conn.close()
     return jsonify({"success": True})
